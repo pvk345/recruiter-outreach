@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Confirm company — Recruiter Outreach{% endblock %}
+{% block content %}
+  <h1>Multiple matches for "{{ company_name }}"</h1>
+  <p class="muted">Pick the right one before we spend any Apollo credits on it.</p>
+
+  {% for candidate in candidates %}
+    <div class="card">
+      <div class="card-header">
+        <strong>{{ candidate.name }}</strong>
+        <span class="muted">{{ candidate.domain or candidate.website_url or "" }}</span>
+      </div>
+      <form method="post" action="{{ url_for('search_confirm') }}">
+        <input type="hidden" name="org_id" value="{{ candidate.apollo_org_id }}">
+        <input type="hidden" name="org_name" value="{{ candidate.name }}">
+        <button type="submit">Select this company</button>
+      </form>
+    </div>
+  {% endfor %}
+
+  <a class="btn secondary" href="{{ url_for('index') }}">Search again</a>
+{% endblock %}

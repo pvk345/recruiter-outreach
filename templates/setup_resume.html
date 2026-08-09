@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Setup — Recruiter Outreach{% endblock %}
+{% block content %}
+  <h1>Setup</h1>
+
+  <h2>Profile</h2>
+  <form method="post" action="{{ url_for('setup_profile') }}">
+    <div class="field">
+      <label for="full_name">Full name</label>
+      <input type="text" id="full_name" name="full_name" value="{{ profile.full_name if profile else '' }}" required>
+    </div>
+    <div class="field">
+      <label for="linkedin_url">LinkedIn URL</label>
+      <input type="url" id="linkedin_url" name="linkedin_url" value="{{ profile.linkedin_url if profile else '' }}">
+    </div>
+    <div class="field">
+      <label for="github_url">GitHub URL</label>
+      <input type="url" id="github_url" name="github_url" value="{{ profile.github_url if profile else '' }}">
+    </div>
+    <div class="field">
+      <label for="portfolio_url">Portfolio URL</label>
+      <input type="url" id="portfolio_url" name="portfolio_url" value="{{ profile.portfolio_url if profile else '' }}">
+    </div>
+    <button type="submit">Save profile</button>
+  </form>
+
+  <h2>Email template</h2>
+  <p class="muted">
+    The fixed wording used for every outreach email (greeting and signature are added
+    automatically, don't include them here). Use <code>{company_name}</code> where the
+    company name should go, and <code>{company_interest}</code> where the AI-generated
+    company-interest sentence should be inserted.
+  </p>
+  <form method="post" action="{{ url_for('setup_email_template') }}">
+    <div class="field">
+      <textarea name="email_template" rows="16">{{ profile.email_template if profile and profile.email_template else default_email_template }}</textarea>
+    </div>
+    <button type="submit">Save email template</button>
+  </form>
+
+  <h2>Resume</h2>
+  {% if resume and resume.summary %}
+    <p class="muted">Processed from {{ resume.resume_pdf_path }}.</p>
+    <p>{{ resume.summary }}</p>
+  {% else %}
+    <p class="muted">Not processed yet. Drop your resume at <code>{{ resume_pdf_path }}</code>, then click below.</p>
+  {% endif %}
+  <form method="post" action="{{ url_for('setup_resume_process') }}">
+    <button type="submit">(Re)process resume</button>
+  </form>
+
+  <h2>Gmail</h2>
+  {% if gmail_connected %}
+    <p class="muted">Connected{% if test_send_mode %} — TEST_SEND_MODE is on, all sends go to {{ test_send_email }} instead of the real recruiter.{% endif %}</p>
+  {% else %}
+    <p class="muted">Not connected yet.</p>
+  {% endif %}
+  <a class="btn" href="{{ url_for('gmail_connect') }}">{{ 'Reconnect Gmail' if gmail_connected else 'Connect Gmail' }}</a>
+{% endblock %}

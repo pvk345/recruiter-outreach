@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ company.name }} — Recruiter Outreach{% endblock %}
+{% block content %}
+  <h1>Recruiters at {{ company.name }}</h1>
+  <p class="muted">{{ recruiters|length }} recruiter(s) with a known email, cached for future searches.</p>
+  {% if test_send_mode %}
+    <p class="flash flash-error">TEST_SEND_MODE is on — all sends redirect to {{ test_send_email }} instead of the real recruiter.</p>
+  {% endif %}
+
+  {% if not recruiters %}
+    <p>No recruiters with an unlocked email were found for this company.</p>
+  {% endif %}
+
+  {% if recruiters %}
+    <form id="generate-form" method="post" action="{{ url_for('generate_drafts', company_id=company.id) }}"></form>
+
+    {% for r in recruiters %}
+      {% set draft = drafts_by_recruiter.get(r.id) %}
+      <div class="card">
+        <div class="card-header">
+          <strong>
+            {% if not draft or draft.status == 'skipped' %}
+              <input type="checkbox" name="recruiter_ids" value="{{ r.id }}" form="generate-form">
+            {% endif %}
+            {{ r.name }}
+          </strong>
+          {% if r.is_university_recruiter %}<span class="badge">University Recruiter</span>{% endif %}
+          {% if r.is_technical_recruiter %}<span class="badge">Technical Recruiter</span>{% endif %}
+        </div>
+        <div class="muted">{{ r.title }}</div>
+        <div>{{ r.email }}</div>
+        {% if r.linkedin_url %}<div><a href="{{ r.linkedin_url }}" target="_blank" rel="noopener">LinkedIn</a></div>{% endif %}
+
+        {% if draft %}
+          <form id="draft-edit-{{ draft.id }}" method="post" action="{{ url_for('edit_draft', draft_id=draft.id) }}"></form>
+          <div class="field" style="margin-top: 0.75rem;">
+            <label for="subject-{{ draft.id }}">Subject</label>
+            <input type="text" form="draft-edit-{{ draft.id }}" id="subject-{{ draft.id }}" name="subject" value="{{ draft.subject }}">
+          </div>
+          <div class="field">
+            <label for="body-{{ draft.id }}">Body</label>
+            <textarea form="draft-edit-{{ draft.id }}" id="body-{{ draft.id }}" name="body" rows="8">{{ draft.body }}</textarea>
+          </div>
+          <div class="muted">Status: {{ draft.status }}</div>
+          <div class="actions">
+            <button type="submit" form="draft-edit-{{ draft.id }}">Save changes</button>
+            {% if draft.status == 'pending' %}
+              <button
+                type="submit"
+                form="draft-edit-{{ draft.id }}"
+                formaction="{{ url_for('send_draft', draft_id=draft.id) }}"
+                onclick="return confirm('Send this email to {{ r.email }}{{ test_send_note }}?')"
+              >Confirm &amp; Send</button>
+              <form method="post" action="{{ url_for('regenerate_draft', draft_id=draft.id) }}">
+                <button type="submit" class="secondary">Regenerate</button>
+              </form>
+              <form method="post" action="{{ url_for('skip_draft', draft_id=draft.id) }}">
+                <button type="submit" class="danger">Skip</button>
+              </form>
+            {% endif %}
+            {% if draft.status == 'sent' %}
+              <form method="post" action="{{ url_for('revert_draft', draft_id=draft.id) }}">
+                <button
+                  type="submit"
+                  class="secondary"
+                  onclick="return confirm('Revert this to pending? Only do this if the send actually failed/bounced -- otherwise the recruiter will get double-emailed if you resend.')"
+                >Revert to pending (send failed/bounced)</button>
+              </form>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+    <button type="submit" form="generate-form">Generate drafts for selected</button>
+  {% endif %}
+
+  <a class="btn secondary" href="{{ url_for('index') }}">Search another company</a>
+{% endblock %}

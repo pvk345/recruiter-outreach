@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Search — Recruiter Outreach{% endblock %}
+{% block content %}
+  <h1>Find recruiters</h1>
+  <p class="muted">Enter a company name to find tech recruiters there via Apollo.</p>
+
+  <form method="post" action="{{ url_for('search') }}">
+    <div class="field">
+      <label for="company_name">Company name</label>
+      <input type="text" id="company_name" name="company_name" placeholder="e.g. Stripe" required autofocus>
+    </div>
+    <button type="submit">Search</button>
+  </form>
+{% endblock %}

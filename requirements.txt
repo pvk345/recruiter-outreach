@@ -1,0 +1,11 @@
+flask
+python-dotenv
+requests
+openai
+google-auth
+google-auth-oauthlib
+google-api-python-client
+pypdf
+langchain
+langchain-openai
+ddgs
